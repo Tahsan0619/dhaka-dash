@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>ঢাকা ড্যাশ · রাস্তা আমজনতার!</title>
+  <meta name="description" content="ব্যঙ্গাত্মক থ্রিডি স্ট্রিট ফাইটার: সাধারণ পথচারী বনাম চাঁদাবাজ, ঘুষখোর, সিন্ডিকেট আর দুর্নীতিবাজ নেতা।" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="flash"></div>
+  <div id="blind"></div>
+  <div id="labels"></div>
+
+  <div id="hud" class="hidden">
+    <div class="money-card">
+      <span class="chip green">উদ্ধার করা টাকা</span>
+      <strong id="hMoney">৳০</strong>
+      <div class="mini-stats">
+        <span>ধরাশায়ী <b id="hKos">০</b></span>
+        <span>দফা <b id="hWave">১</b></span>
+      </div>
+      <div class="chips">
+        <span class="chip-s" id="hClock"></span>
+        <span class="chip-s hidden" id="hWeapon"></span>
+        <span class="chip-s hidden" id="hFollowers"></span>
+      </div>
+    </div>
+
+    <div class="mission hidden" id="mission">
+      <div class="m-head"><span class="m-tag">মিশন</span><b id="mTitle"></b><em id="mTime"></em></div>
+      <p id="mDesc"></p>
+      <div class="m-foot"><span id="mDist"></span><i><s id="mFill"></s></i></div>
+    </div>
+
+    <div class="right-col">
+      <div class="hp" id="hHp">
+        <span class="hp-label">দম</span>
+        <div class="hp-bar"><i id="hHpFill"></i></div>
+        <b id="hHpText">১০০%</b>
+      </div>
+      <canvas id="minimap" width="150" height="150"></canvas>
+      <div class="objective" id="objective"><span id="objArrow">➤</span><span id="objText"></span></div>
+      <div class="round-btns">
+        <button class="round" data-action="pause" aria-label="থামান">❚❚</button>
+        <button class="round" id="muteBtn" data-action="mute" aria-label="শব্দ">🔊</button>
+      </div>
+    </div>
+
+    <div class="powers">
+      <div class="power" id="hPower">
+        <div class="power-head"><span>✊ <span id="hPowerName">জনতার শক্তি</span></span><kbd>E</kbd></div>
+        <div class="power-bar"><i id="hPowerFill"></i></div>
+      </div>
+      <div class="sandal" id="hSandalWrap"><span>🩴</span><b id="hSandals">×৩</b><kbd>F</kbd></div>
+    </div>
+
+    <div class="combo" id="combo"><b>৩</b><span>হিট!</span></div>
+    <div class="hint" id="hint"></div>
+    <div class="toast" id="toast"></div>
+    <div class="banner" id="banner"><h2 id="bannerTitle"></h2><p id="bannerSub"></p></div>
+  </div>
+
+  <div id="ticker">
+    <span class="ticker-label">সর্বশেষ</span>
+    <div class="ticker-window"><div class="ticker-track" id="tickerTrack"></div></div>
+    <span class="ticker-brand">DhakaDash</span>
+  </div>
+
+  <div id="touch" class="hidden">
+    <div class="stick-pad" id="stickPad"><div class="stick-knob" id="stickKnob"></div></div>
+    <div class="act-pad">
+      <button data-act="use" class="act us">🛺</button>
+      <button data-act="special" class="act sp">✊</button>
+      <button data-act="throw" class="act th">🩴</button>
+      <button data-act="dodge" class="act dg">সরো</button>
+      <button data-act="kick" class="act kk">লাথি</button>
+      <button data-act="punch" class="act pn">ঘুষি</button>
+    </div>
+  </div>
+
+  <section id="title" class="screen title-screen">
+    <div class="garland" aria-hidden="true"></div>
+    <div class="title-wrap">
+      <h1 class="logo">ঢাকা ড্যাশ</h1>
+      <p class="logo-en">DHAKA DASH</p>
+      <p class="site">আমজনতা বনাম দুর্নীতি</p>
+      <p class="question">রাস্তা আমজনতার!</p>
+      <p class="tagline">চাঁদাবাজ, ঘুষখোর, সিন্ডিকেট: সবাইকে এক ঘুষিতে নিয়মে আনুন।</p>
+      <p class="pick-label">কে নামবেন রাস্তায়?</p>
+      <div class="hero-pick" id="heroPick"></div>
+      <div class="cta-row">
+        <button class="cta" data-action="start">রুখে দাঁড়ান</button>
+        <button class="pill" data-action="heroes">🏅 হিরো বোর্ড</button>
+      </div>
+      <p id="titleBest" class="title-best"></p>
+
+      <div class="howto" id="howto">
+        <button class="howto-head" data-action="howto">কীভাবে খেলবেন <span>⌃</span></button>
+        <ul class="howto-list">
+          <li><i class="ic red">👊</i><div><b>ঘুষি-লাথি দিন</b><span>J / Space ঘুষি (তিনবারে কম্বো), K লাথি</span></div></li>
+          <li><i class="ic orange">🚌</i><div><b>বাস থামে না</b><span>সামনে লাল দাগ মানে সরে যান। মাস্তানদের বাসের সামনে টেনে আনুন!</span></div></li>
+          <li><i class="ic blue">🩴</i><div><b>স্যান্ডেল ছুড়ুন</b><span>F চাপুন। নীল দাগের জুতার দোকানে আবার ভরে নিন</span></div></li>
+          <li><i class="ic yellow">☕</i><div><b>দম ফুরালে চা খান</b><span>হলুদ দাগের চায়ের দোকানে দাঁড়ালেই দম ফেরে</span></div></li>
+          <li><i class="ic green">✊</i><div><b>বিশেষ শক্তি</b><span>মার দিলে মিটার ভরে। E চাপলে হিরোর নিজস্ব বিশেষ চাল</span></div></li>
+          <li><i class="ic pink">🌀</i><div><b>সরে যান</b><span>Shift / L চাপলে গড়িয়ে সরে যাবেন। বসদের আছাড় থেকে বাঁচুন</span></div></li>
+          <li><i class="ic orange">🛺</i><div><b>রিকশা-সিএনজি চালান</b><span>সবুজ দাগে পার্ক করা যানের কাছে G চাপুন। ধাক্কা দিন, J দিয়ে হর্ন</span></div></li>
+          <li><i class="ic yellow">🧹</i><div><b>রাস্তার অস্ত্র</b><span>ঝাড়ু, মাস্তানের লাঠি কুড়িয়ে নিন। কয়েকবার মারলে ভেঙে যায়</span></div></li>
+          <li><i class="ic blue">👥</i><div><b>জনতা সাথে আসে</b><span>যাদের বাঁচাবেন তারা দলে যোগ দিয়ে লড়বে</span></div></li>
+          <li><i class="ic red">🎯</i><div><b>মিশন ও বস</b><span>পকেটমার ধরুন, ছাত্রকে পরীক্ষায় পৌঁছান, ঘুষ লেনদেন থামান। প্রতি তিন দফায় নতুন বস</span></div></li>
+        </ul>
+        <p class="howto-note">W A S D বা তীরচিহ্ন দিয়ে হাঁটুন · G উঠুন/নামুন · P থামান · M শব্দ বন্ধ</p>
+      </div>
+    </div>
+    <div class="title-foot">
+      <button class="poster-btn" data-action="heroes">জনতার হিরো</button>
+      <button class="link" data-action="disclaimer">ডিসক্লেইমার</button>
+      <div class="credit">
+        <a class="made-by" href="https://babuntooacademy.com" target="_blank" rel="noopener">Made by <b>Tahsan</b> ↗</a>
+        <span class="inspired">অনুপ্রেরণা: <a href="https://baperrasta.com" target="_blank" rel="noopener">বাপের রাস্তা</a> · কোনো কোড কপি করা হয়নি, পুরো কোডবেস নিজে লেখা</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="pause" class="screen hidden">
+    <div class="card">
+      <h2>একটু জিরিয়ে নিন</h2>
+      <p>দুর্নীতিবাজরা তো আর পালাচ্ছে না।</p>
+      <button class="cta" data-action="resume">আবার নামুন</button>
+      <button class="pill" data-action="menu">মেনুতে ফিরুন</button>
+    </div>
+  </section>
+
+  <section id="over" class="screen hidden">
+    <article class="paper">
+      <div id="paperBody"></div>
+      <div class="paper-save no-export">
+        <label for="heroName">হিরো বোর্ডে কী নামে উঠবেন?</label>
+        <div class="save-row">
+          <input id="heroName" maxlength="18" placeholder="আপনার নাম" autocomplete="off" />
+          <button id="saveHero" class="pill dark" data-action="save">বোর্ডে নাম তুলুন</button>
+        </div>
+      </div>
+      <div class="paper-actions no-export">
+        <button class="pill dark share" id="shareBtn" data-action="share">পত্রিকা শেয়ার করুন</button>
+        <button class="cta" data-action="again">আবার রুখে দাঁড়ান</button>
+        <button class="pill dark" data-action="menu">মেনু</button>
+      </div>
+    </article>
+  </section>
+
+  <div id="heroes" class="modal hidden">
+    <div class="poster">
+      <button class="x" data-action="close" aria-label="বন্ধ">✕</button>
+      <h2>জনতার হিরো</h2>
+      <p>সবচেয়ে বেশি টাকা উদ্ধার করা পথচারী। পুরস্কার: এক কাপ দুধ-চা।</p>
+      <ol id="heroList"></ol>
+    </div>
+  </div>
+
+  <div id="disclaimer" class="modal hidden">
+    <div class="card">
+      <button class="x" data-action="close" aria-label="বন্ধ">✕</button>
+      <h2>ডিসক্লেইমার</h2>
+      <p>এটি একটি ব্যঙ্গাত্মক, সম্পূর্ণ কাল্পনিক গেম। কোনো চরিত্র বাস্তব কোনো ব্যক্তি বা প্রতিষ্ঠানকে নির্দেশ করে না।</p>
+      <p>বাস্তবে আইন নিজের হাতে তুলে নেবেন না। দুর্নীতির তথ্য দিন দুদকের হটলাইন <b>১০৬</b>-এ।</p>
+      <p>গেমটি <a href="https://baperrasta.com" target="_blank" rel="noopener">বাপের রাস্তা</a> (Omar Faruqe Riyad) থেকে অনুপ্রাণিত। তবে সেখান থেকে কোনো কোড, ছবি বা ফাইল কপি করা হয়নি; পুরো কোডবেস শুরু থেকে আলাদাভাবে লেখা।</p>
+      <p><a class="made-by" href="https://babuntooacademy.com" target="_blank" rel="noopener">Made by <b>Tahsan</b> ↗</a></p>
+      <button class="pill dark" data-action="close">বুঝেছি</button>
+    </div>
+  </div>
+
+  <script src="dist/game.js"></script>
+</body>
+</html>
